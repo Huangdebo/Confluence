@@ -37,16 +37,25 @@ NMS在去除重合 bbox 是仅考虑其置信度的高低，Condluence 则同时
 ![image](https://github.com/Huangdebo/Confluence/blob/master/imges/6.png)
 
 算法：
+
 （1）针对每个类别挑出属于该类别的 bbox 集合 B
+
 （2）遍历 B 中所有的 bbox bi，并计算 bi 和其他 boox的 曼哈顿距离 p，并归一化
-    2.1 选出 p < 2 的集合，作为一个 cluster，并计算加权曼哈顿距离 wp。
-    2.2 在该 cluster 中挑选出最小的 wp 作为 bi 的 wp。
+
+    2.1 选出 p < 2 的集合，作为一个 cluster，并计算加权曼哈顿距离 wp。 
+    
+    2.2 在该 cluster 中挑选出最小的 wp 作为 bi 的 wp。 
+    
 （3）遍历完毕后，挑出 wp 最小的 bi 作为最优 bbox，添加进最终结果集合中，并将其从 B 去除
+
 （4）把与最优 bbox 的曼哈顿距离小于阈值 MD 的的 bbox 从 B 中去除
+
 （5）不断重复 （2） - （4），每次都选出一个最优 bbox，知道 B 为空
 
 注意： 
+
 （1）原文伪代码第 5 行：optimalConfuence 初始化成一个比较大的值就可以，不一定要是 Ip
+
 （2）原文伪代码第 12 行：应该是 Proximity / si
 
 
