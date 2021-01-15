@@ -2,6 +2,8 @@
 
 ## 1. 介绍
 
+![image](https://github.com/Huangdebo/Confluence/blob/master/imges/1.png)
+
 用以替代 NMS，在所有 bbox 中挑选出最优的集合。 NMS 仅考虑了 bbox 的得分，然后根据 IOU 来去除重叠的 bbox。而 Confluence 则是利用曼哈顿距离作为 bbox 之间的重合度，并根据置信度加权的曼哈顿距离还作为最优 bbox 的选择依据。
 
 ## 2. 算法原理
@@ -10,7 +12,11 @@
 
 两点的曼哈顿距离就是坐标值插的 L1 范数：
 
+![image](https://github.com/Huangdebo/Confluence/blob/master/imges/2.png)
+
 推广到两个 bbox 对的哈曼顿距离则为：
+
+![image](https://github.com/Huangdebo/Confluence/blob/master/imges/3.png)
 
 该算法便是以曼哈顿距离作为两个 bbox 的重合度，曼哈顿距离小于一定值的的 bbox 则被认为是一个 cluster。
 
@@ -18,14 +24,17 @@
 
 因为 bbox 有个各样的 size 和 position，所以直接计算曼哈顿距离就没有可比性，没有标准的度量。所以需要对其进行归一化：
 
+![image](https://github.com/Huangdebo/Confluence/blob/master/imges/4.png)
+
 #### 2.3 置信度加权曼哈顿距离
 
 NMS在去除重合 bbox 是仅考虑其置信度的高低，Condluence 则同时考虑了曼哈顿距离和置信度，构成一个置信度加权曼哈顿距离：
 
-
+![image](https://github.com/Huangdebo/Confluence/blob/master/imges/5.png)
 
 ## 3. 算法实现
 
+![image](https://github.com/Huangdebo/Confluence/blob/master/imges/6.png)
 
 算法：
 （1）针对每个类别挑出属于该类别的 bbox 集合 B
@@ -43,7 +52,7 @@ NMS在去除重合 bbox 是仅考虑其置信度的高低，Condluence 则同时
 
 ## 4. 实验结果
 
- 
+![image](https://github.com/Huangdebo/Confluence/blob/master/imges/7.png)
 
 ## Credits:
 
