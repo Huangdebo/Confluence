@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import torch
+import random
 
 def xywh2xyxy(x):
     # Transform box coordinates from [x, y, w, h] to [x1, y1, x2, y2] (where xy1=top-left, xy2=bottom-right)
@@ -11,7 +12,41 @@ def xywh2xyxy(x):
     y[:, 3] = x[:, 1] + x[:, 3] / 2  # bottom right y
     return y
 
+def scale_coords_x(img1_shape, coords, img0_shape):
+       
+    scale_x = img1_shape[1] / img0_shape[1]
+    scale_y = img1_shape[0] / img0_shape[0]
 
+    coords[:, [0, 2]] /= scale_x
+    coords[:, [1, 3]] /= scale_y
+
+    clip_coords(coords, img0_shape)
+    return coords
+
+
+def clip_coords(boxes, img_shape):
+    # Clip bounding xyxy bounding boxes to image shape (height, width)
+    boxes[:, 0] = np.clip(boxes[:, 0], 0, img_shape[1])  # x1
+    boxes[:, 1] = np.clip(boxes[:, 1], 0, img_shape[0])  # y1
+    boxes[:, 2] = np.clip(boxes[:, 2], 0, img_shape[1])  # x2
+    boxes[:, 3] = np.clip(boxes[:, 3], 0, img_shape[0])  # y2
+    
+def plot_one_box(x, img, color=None, label=None, line_thickness=None):
+    # Plots one bounding box on image img
+    tl = line_thickness or round(0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
+    color = color or [random.randint(0, 255) for _ in range(3)]
+    c1, c2 = (int(x[0]), int(x[1])), (int(x[2]), int(x[3]))
+    cv2.rectangle(img, c1, c2, color, thickness=tl)
+    if label:
+        tf = max(tl - 1, 1)  # font thickness
+        t_size = cv2.getTextSize(label, 0, fontScale=tl / 3, thickness=tf)[0]
+        c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
+        cv2.rectangle(img, c1, c2, color, -1)  # filled
+        cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
+
+
+
+# work for YOLOV3 or YOLOV4
 def confluence_process(prediction, conf_thres=0.1, wp_thres=0.6):
     """Performs Confluence on inference results
          the prediction: (bs, anchors*grid*grid, xywh + confidence + classes) , type: torch.tensor
@@ -142,7 +177,7 @@ def confluence(prediction, class_num, wp_thres=0.6):
                     confluence_min = value
                     best = i        
 
-            keep.append(pcs[best][6]) 
+            keep.append(int(pcs[best][6])) 
             if (len(ps) > 0):               
                 p = ps[best]
                 index_ = np.where(p < wp_thres)[0]
@@ -158,3 +193,36 @@ def confluence(prediction, class_num, wp_thres=0.6):
     return keep
      
     
+  
+# test the confluence
+def test():
+    
+    colors = [[0, 0, 255], [0, 255, 0], [255, 0, 0]]
+    
+    img = cv2.imread('./data/test.png')   
+    img = cv2.resize(img, (1080, 720))
+    prediction = np.loadtxt('./data/prediction.txt')
+    
+    nc = 3
+    wp_thres = 0.6
+    i = confluence(prediction, nc, wp_thres)    
+    print(i)    
+    print(np.shape((prediction)))
+    output = prediction[i]
+    
+    if output is not None and len(output):
+        # Rescale boxes from img_size to im0 size
+        output[:, :4] = scale_coords_x([416, 416], output[:, :4], img.shape).round()
+
+        # Write results
+        for *xyxy, conf, cls in output:
+            label = '%s %.2f' % (str(cls), conf)
+            plot_one_box(xyxy, img, label=label, color=colors[int(cls)])
+            
+    cv2.imshow("xx", img)
+    cv2.waitKey(-1) 
+    
+    
+if __name__ == '__main__':
+    
+    test()
