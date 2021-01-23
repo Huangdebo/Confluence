@@ -47,7 +47,7 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
 
 
 # work for YOLOV3 or YOLOV4
-def confluence_process(prediction, conf_thres=0.1, wp_thres=0.6):
+def confluence_process(prediction, conf_thres=0.1, p_thres=0.6):
     """Performs Confluence on inference results
          the prediction: (bs, anchors*grid*grid, xywh + confidence + classes) , type: torch.tensor
 
@@ -97,7 +97,7 @@ def confluence_process(prediction, conf_thres=0.1, wp_thres=0.6):
 
         # confluence
         dets = x.cpu().numpy()
-        i = confluence(dets, nc, wp_thres)
+        i = confluence(dets, nc, p_thres)
         
         output[xi] = x[i]
         #if (time.time() - t) > time_limit:
@@ -106,9 +106,9 @@ def confluence_process(prediction, conf_thres=0.1, wp_thres=0.6):
     return output
     
 
-def confluence(prediction, class_num, wp_thres=0.6):
+def confluence(prediction, class_num, p_thres=0.6):
     """Performs Confluence on inference results
-         the prediction: (n, xywh + confidence + classID), type: numpy.array
+         the prediction: (n, xyxy + confidence + classID), type: numpy.array
 
     Returns:
          the index of the predicetion.
@@ -180,7 +180,7 @@ def confluence(prediction, class_num, wp_thres=0.6):
             keep.append(int(pcs[best][6])) 
             if (len(ps) > 0):               
                 p = ps[best]
-                index_ = np.where(p < wp_thres)[0]
+                index_ = np.where(p < p_thres)[0]
                 index_ = [i if i < best else i +1 for i in index_]
             else:
                 index_ = []
